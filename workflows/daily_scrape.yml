@@ -1,0 +1,30 @@
+name: Daily Rates Scraper
+
+on:
+  schedule:
+    # 23:00 UTC = 20:00 Argentina Standard Time
+    - cron: '0 23 * * *'
+  workflow_dispatch: # Permite ejecutar manualmente desde la web de GitHub
+
+jobs:
+  scrape-and-store:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python tasas_bna_light_supabase.py
