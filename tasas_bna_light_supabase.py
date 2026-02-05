@@ -24,17 +24,31 @@ class BNALightScraper:
             
             # --- 1. TASA ACTIVA (HTML) ---
             tasa_activa = {}
+            # Buscamos el nodo del título
             header_node = soup.find(string=lambda t: "Tasa Activa Cartera General Diversas" in t if t else False)
             
             if header_node:
+                # Subimos dos niveles para agarrar el bloque completo de texto
                 block_text = header_node.find_parent().find_parent().get_text(separator=" ", strip=True)
+                
+                # Debug: Imprimimos un pedacito del texto para ver qué está leyendo realmente
+                print(f"DEBUG - Texto encontrado (primeros 100 chars): {block_text[:100]}...")
+
                 tem = re.search(r'T\.E\.M\..*?(\d+,\d+)\s*%', block_text)
                 tna = re.search(r'T\.N\.A\..*?(\d+,\d+)\s*%', block_text)
                 tea = re.search(r'T\.E\.A\..*?(\d+,\d+)\s*%', block_text)
                 
-                # Extracción de fecha de vigencia
-                fecha_match = re.search(r'Vigencia a partir del\s+(\d{1,2}/\d{1,2}/\d{2,4})', block_text, re.IGNORECASE)
-                fecha_str = fecha_match.group(1) if fecha_match else datetime.now().strftime("%d/%m/%Y")
+                # --- FIX FECHA DE VIGENCIA ---
+                # Regex mejorado: Busca "Vigen" seguido de cualquier cosa hasta encontrar una fecha DD/MM/AAAA
+                # (?i) hace que sea case-insensitive (ignora mayúsculas/minúsculas)
+                fecha_match = re.search(r'Vigen.*?(\d{1,2}/\d{1,2}/\d{2,4})', block_text, re.IGNORECASE)
+                
+                if fecha_match:
+                    fecha_str = fecha_match.group(1)
+                    print(f"DEBUG - Fecha detectada en web: {fecha_str}")
+                else:
+                    print("DEBUG - No se detectó fecha 'Vigencia', usando fecha actual como fallback.")
+                    fecha_str = datetime.now().strftime("%d/%m/%Y")
 
                 tasa_activa = {
                     "fecha_vigencia": fecha_str,
@@ -98,7 +112,6 @@ def main():
         supabase: Client = create_client(url, key)
         
         # 3. Insertar en la tabla 'historial_tasas'
-        # Usamos la columna 'datos' que es tipo JSONB
         response = supabase.table("historial_tasas").insert({
             "datos": data,
             "fecha_scraping": datetime.now().strftime("%Y-%m-%d")
