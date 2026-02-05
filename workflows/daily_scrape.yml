@@ -2,8 +2,8 @@ name: Daily Rates Scraper
 
 on:
   schedule:
-    # 23:00 UTC = 20:00 Argentina Standard Time
-    - cron: '0 23 * * *'
+    # 21:30 UTC = 18:30 Argentina Standard Time
+    - cron: '30 21 * * *'
   workflow_dispatch: # Permite ejecutar manualmente desde la web de GitHub
 
 jobs:
