@@ -21,7 +21,7 @@ export default async function HistoricoPage() {
   const historial = await getHistoricalData();
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-12 font-sans">
+    <main className="bg-slate-50 text-slate-900 px-4 pt-4 pb-2 md:px-12 md:pt-12 md:pb-4 font-sans">
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header */}
