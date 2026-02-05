@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
-// Revalidación ISR: Next.js va a regenerar esta página estática cada 1 hora máximo
+// Revalidación: cada 1 hora chequea si hay datos nuevos
 export const revalidate = 3600;
 
 async function getTasas() {
@@ -11,50 +12,59 @@ async function getTasas() {
   
   const { data } = await supabase
     .from('historial_tasas')
-    .select('datos')
+    .select('datos, fecha_scraping')
     .order('id', { ascending: false })
     .limit(1)
     .single();
     
-  return data?.datos;
+  return data;
 }
 
 export default async function Home() {
-  const data = await getTasas();
-  const tasas = data?.tasas;
-  const fecha = data?.metadata?.timestamp;
+  const record = await getTasas();
+  const tasas = record?.datos?.tasas;
+  const fechaScraping = record?.fecha_scraping; // Fecha en que corrió el bot
 
-  if (!tasas) return <div className="p-10">Cargando datos o error de conexión...</div>;
+  if (!tasas) return <div className="p-10 text-center">Cargando datos o base vacía...</div>;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-12 font-sans">
       <div className="max-w-4xl mx-auto space-y-8">
         
-        {/* Header */}
-        <header className="text-center space-y-2">
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-blue-900">
-            Tasas BNA
-          </h1>
-          <p className="text-slate-500">
-            Datos extraídos automáticamente del Banco de la Nación Argentina.
-          </p>
-          <div className="text-xs font-mono text-slate-400">
-            Última actualización: {fecha}
+        {/* Header con Navegación */}
+        <header className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-slate-200">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl font-bold tracking-tight text-blue-900">
+              Tasas BNA
+            </h1>
+            <p className="text-slate-500 text-sm">
+              Extracción automática diaria. Último run: {fechaScraping}
+            </p>
           </div>
+          
+          <Link 
+            href="/historico"
+            className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 hover:text-blue-700 transition flex items-center gap-2"
+          >
+            📅 Ver Historial Completo
+          </Link>
         </header>
 
         {/* Grid de Tarjetas */}
         <div className="grid md:grid-cols-2 gap-6">
           
           {/* Card: Plazo Fijo */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-bl-lg font-mono">
+              PASIVA
+            </div>
             <h2 className="text-lg font-semibold text-green-700 mb-4 flex items-center">
-              <span className="mr-2">📈</span> {tasas.pasiva_judicial.referencia}
+              <span>📈</span> <span className="ml-2">{tasas.pasiva_judicial.referencia}</span>
             </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between items-baseline border-b pb-2">
+            <div className="space-y-4">
+              <div className="flex justify-between items-baseline border-b border-slate-50 pb-2">
                 <span className="text-slate-500 text-sm">TNA (Nominal)</span>
-                <span className="text-2xl font-bold text-slate-800">{tasas.pasiva_judicial.TNA}</span>
+                <span className="text-3xl font-bold text-slate-800">{tasas.pasiva_judicial.TNA}</span>
               </div>
               <div className="flex justify-between items-baseline">
                 <span className="text-slate-500 text-sm">TEA (Efectiva)</span>
@@ -64,16 +74,25 @@ export default async function Home() {
           </div>
 
           {/* Card: Judicial / Activa */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition">
-            <h2 className="text-lg font-semibold text-blue-700 mb-4 flex items-center">
-              <span className="mr-2">⚖️</span> Tasa Activa Judicial
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-bl-lg font-mono">
+              ACTIVA
+            </div>
+            <h2 className="text-lg font-semibold text-blue-700 mb-2 flex items-center">
+              <span>⚖️</span> <span className="ml-2">Tasa Activa Judicial</span>
             </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between items-baseline border-b pb-2">
+            
+            {/* NUEVO: Fecha de Vigencia */}
+            <div className="mb-4 bg-blue-50 text-blue-800 text-xs inline-block px-2 py-1 rounded border border-blue-100">
+              Vigente desde: <strong>{tasas.activa_judicial.fecha_vigencia}</strong>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-baseline border-b border-slate-50 pb-2">
                 <span className="text-slate-500 text-sm">TNA (Nominal)</span>
-                <span className="text-2xl font-bold text-slate-800">{tasas.activa_judicial.TNA}</span>
+                <span className="text-3xl font-bold text-slate-800">{tasas.activa_judicial.TNA}</span>
               </div>
-              <div className="flex justify-between items-baseline border-b pb-2">
+              <div className="flex justify-between items-baseline border-b border-slate-50 pb-2">
                 <span className="text-slate-500 text-sm">TEA (Efectiva)</span>
                 <span className="text-xl font-semibold text-slate-700">{tasas.activa_judicial.TEA}</span>
               </div>
@@ -85,26 +104,9 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Sección para Desarrolladores (API) */}
-        <section className="mt-12 bg-slate-900 text-slate-300 rounded-xl p-6 md:p-8">
-          <h3 className="text-white text-xl font-semibold mb-4">👨‍💻 API para Desarrolladores</h3>
-          <p className="mb-4 text-sm">
-            Podés consumir estos datos libremente en tus aplicaciones. Respuesta en formato JSON.
-          </p>
-          
-          <div className="bg-black/50 rounded-lg p-4 font-mono text-sm overflow-x-auto border border-slate-700">
-            <div className="flex justify-between mb-2 text-xs text-slate-500">
-              <span>GET</span>
-              <span>JSON</span>
-            </div>
-            <code className="text-green-400">
-              https://tasas-bna-api.vercel.app/api/tasas/latest
-            </code>
-          </div>
-
-          <div className="mt-4 text-xs text-slate-500">
-            * Caché público de 12 horas. CORS habilitado.
-          </div>
+        {/* Sección API (sin cambios, solo visual) */}
+        <section className="bg-slate-900 text-slate-300 rounded-xl p-6 text-sm">
+           <p>Para desarrolladores: <code className="text-green-400 bg-black/30 px-2 py-1 rounded">/api/tasas/latest</code></p>
         </section>
 
       </div>
