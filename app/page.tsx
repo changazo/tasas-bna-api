@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 
-// Revalidación: cada 1 hora chequea si hay datos nuevos
-export const revalidate = 3600;
+// Revalidación: cada 5 minutos chequea si hay datos nuevos
+export const revalidate = 300;
 
 async function getTasas() {
   const supabase = createClient(
