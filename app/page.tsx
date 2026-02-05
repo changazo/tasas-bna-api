@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Revalidación ISR: Next.js regenerará esta página estática cada 1 hora máximo
+// Revalidación ISR: Next.js va a regenerar esta página estática cada 1 hora máximo
 export const revalidate = 3600;
 
 async function getTasas() {
@@ -89,7 +89,7 @@ export default async function Home() {
         <section className="mt-12 bg-slate-900 text-slate-300 rounded-xl p-6 md:p-8">
           <h3 className="text-white text-xl font-semibold mb-4">👨‍💻 API para Desarrolladores</h3>
           <p className="mb-4 text-sm">
-            Puedes consumir estos datos libremente en tus aplicaciones. Respuesta en formato JSON.
+            Podés consumir estos datos libremente en tus aplicaciones. Respuesta en formato JSON.
           </p>
           
           <div className="bg-black/50 rounded-lg p-4 font-mono text-sm overflow-x-auto border border-slate-700">
@@ -98,7 +98,7 @@ export default async function Home() {
               <span>JSON</span>
             </div>
             <code className="text-green-400">
-              https://tu-proyecto.vercel.app/api/tasas/latest
+              https://tasas-bna-api.vercel.app/api/tasas/latest
             </code>
           </div>
 
