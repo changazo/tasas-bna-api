@@ -158,22 +158,15 @@ El archivo `.github/workflows/daily_scrape.yml` ya está configurado. Solamente 
 
 ---
 
-## 📂 Estructura del proyecto
-
-```text
-.
-├── .github/workflows/          # Configuración del Cron Job diario
-├── app/
-│   ├── api/tasas/              # Endpoint(s) de la API
-│   └── page.tsx                # Frontend (Dashboard)
-├── tasas_bna_light_supabase.py # Script principal de scraping
-├── requirements.txt            # Dependencias de Python
-├── package.json                # Dependencias de Node.js
-└── README.md
-```
-
----
-
 ## ⚠️ Disclaimer
 
 Este proyecto no tiene afiliación con el Banco de la Nación Argentina. Los datos se obtienen mediante técnicas de web scraping y pueden contener errores o quedar desactualizados si cambia la estructura de la web oficial. Usalo bajo tu propia responsabilidad.
+
+---
+
+## Créditos
+
+Si te sirvió, una referencia o mención en tu proyecto no viene mal.
+
+Buena vida,
+Juan Cruz
