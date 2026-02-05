@@ -6,7 +6,7 @@ Combina un **scraper en Python** automatizado con **GitHub Actions**, una base d
 
 ## 🚀 Demo & API
 
-- **Web Dashboard:** `https://tu-proyecto.vercel.app` (reemplazá por tu URL real)
+- **Web Dashboard:** `https://tasas-bna-api.vercel.app`
 - **API Endpoint:** `GET /api/tasas/latest`
 
 ## 🏗 Arquitectura
@@ -135,7 +135,7 @@ npm install
 npm run dev
 ```
 
-Visita `http://localhost:3000`.
+Visitá `http://localhost:3000`.
 
 ---
 
@@ -143,7 +143,7 @@ Visita `http://localhost:3000`.
 
 ### 1) GitHub Actions (automático)
 
-El archivo `.github/workflows/daily_scrape.yml` ya está configurado. Solo asegurate de agregar estas **Secrets** en tu repositorio de GitHub:
+El archivo `.github/workflows/daily_scrape.yml` ya está configurado. Solamente asegurate de agregar estas **Secrets** en tu repositorio de GitHub:
 
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
