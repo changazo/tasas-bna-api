@@ -25,15 +25,15 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-slate-50`}
       >
-        {/* El contenido de la página se renderiza aquí */}
-        <div className="flex-1 w-full">
+        {/* Quitamos 'flex-1'. Ahora es un contenedor normal */}
+        <div className="w-full">
             {children}
         </div>
 
-        {/* --- FOOTER CON CAFECITO --- */}
-        <footer className="py-8 text-center border-t border-slate-200 mt-auto bg-white w-full">
+        {/* Footer: Le agregamos un margen superior 'mt-10' para separar un poco, pero no lo forzamos abajo */}
+        <footer className="py-8 text-center border-t border-slate-200 bg-white w-full mt-10">
           <div className="flex flex-col items-center gap-4 px-4">
             <p className="text-slate-500 text-sm font-sans">
               ¿Te sirvió el dato? Ayudame a mantener el servidor:
@@ -57,8 +57,6 @@ export default function RootLayout({
             </p>
           </div>
         </footer>
-        {/* --------------------------- */}
-
       </body>
     </html>
   );
