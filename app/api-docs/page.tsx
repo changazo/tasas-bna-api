@@ -14,7 +14,7 @@ export default function ApiDocs() {
           </Link>
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">Documentación de API</h1>
           <p className="text-lg text-slate-600">
-            Accede a los datos históricos y actuales de tasas judiciales del Banco Nación Argentina de forma programática.
+            Accedé a los datos históricos y actuales de tasas (activas y pasivas) del Banco Nación Argentina de forma programática.
           </p>
         </div>
 
