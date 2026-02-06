@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
-import { format, subDays, parseISO, isAfter, isBefore, startOfDay } from 'date-fns';
+// AGREGADO: Importamos 'parse' para leer el formato DD/MM/YYYY
+import { format, subDays, parseISO, isAfter, isBefore, startOfDay, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Tipos de datos
@@ -27,12 +28,30 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
 
   // 1. Transformar datos crudos a formato amigable para el gráfico
   const formattedData = useMemo(() => {
-    // Procesamos y ordenamos cronológicamente (ascendente) para el gráfico
     return rawData
       .map((row) => {
         const t = row.datos.tasas;
+        
+        // --- LOGICA DE FECHAS CORREGIDA ---
+        let dateStr = row.fecha_scraping; // Valor por defecto (si fallara la vigencia)
+
+        // Intentamos leer la fecha de vigencia "DD/MM/YYYY"
+        const vigenciaRaw = t?.activa_judicial?.fecha_vigencia; // Ej: "06/02/2026"
+        
+        if (vigenciaRaw) {
+          try {
+            // Parseamos formato argentino a Objeto Date de JS
+            const parsedDate = parse(vigenciaRaw, 'dd/MM/yyyy', new Date());
+            // Lo convertimos a ISO para que el gráfico lo pueda ordenar y filtrar igual que antes
+            dateStr = parsedDate.toISOString(); 
+          } catch (e) {
+            console.error("Error parseando fecha vigencia:", vigenciaRaw);
+          }
+        }
+        // ----------------------------------
+
         return {
-          date: row.fecha_scraping,
+          date: dateStr, // Ahora usamos la fecha real de validez
           // Activas (Azules)
           activa_tna: parsePercent(t?.activa_judicial?.TNA),
           activa_tea: parsePercent(t?.activa_judicial?.TEA),
@@ -42,6 +61,7 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
           pasiva_tea: parsePercent(t?.pasiva_judicial?.TEA),
         };
       })
+      // Ordenamos cronológicamente (importante porque ahora las fechas pueden venir desordenadas respecto al ID)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [rawData]);
 
@@ -56,7 +76,6 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
     if (filter === '1Y') startDate = subDays(now, 365);
     
     if (filter === 'CUSTOM') {
-       // Si es custom, filtramos explícitamente dentro del return
        return formattedData.filter(d => {
          const dDate = parseISO(d.date);
          const start = customStart ? startOfDay(parseISO(customStart)) : null;
@@ -136,7 +155,7 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
               <YAxis 
                 stroke="#94a3b8" 
                 fontSize={12} 
-                domain={['auto', 'auto']} // Escala automática
+                domain={['auto', 'auto']} 
                 tickFormatter={(val) => `${val}%`}
               />
               <Tooltip 
