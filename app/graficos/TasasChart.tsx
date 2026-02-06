@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
-// AGREGADO: Importamos 'parse' para leer el formato DD/MM/YYYY
 import { format, subDays, parseISO, isAfter, isBefore, startOfDay, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -15,7 +14,7 @@ type RawData = {
   datos: any;
 };
 
-// Función auxiliar para parsear porcentajes ("37,42%" -> 37.42)
+// Función auxiliar para parsear porcentajes
 const parsePercent = (str: string | undefined) => {
   if (!str) return 0;
   return parseFloat(str.replace('%', '').replace(',', '.'));
@@ -25,50 +24,54 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
   const [filter, setFilter] = useState<'1W' | '1M' | '6M' | '1Y' | 'ALL' | 'CUSTOM'>('1M');
   const [customStart, setCustomStart] = useState<string>('');
   const [customEnd, setCustomEnd] = useState<string>('');
+  
+  // ESTADO PARA MANEJAR LA VISIBILIDAD DE LAS SERIES
+  const [hiddenSeries, setHiddenSeries] = useState<string[]>([]);
 
-  // 1. Transformar datos crudos a formato amigable para el gráfico
+  // Función para ocultar/mostrar líneas al hacer click en la leyenda
+  const handleLegendClick = (e: any) => {
+    const dataKey = e.dataKey; // Obtenemos el ID de la línea clickeada
+    setHiddenSeries((prev) => 
+      prev.includes(dataKey) 
+        ? prev.filter((key) => key !== dataKey) // Si estaba oculto, lo mostramos
+        : [...prev, dataKey] // Si estaba visible, lo ocultamos
+    );
+  };
+
+  // 1. Transformar datos
   const formattedData = useMemo(() => {
     return rawData
       .map((row) => {
         const t = row.datos.tasas;
-        
-        // --- LOGICA DE FECHAS CORREGIDA ---
-        let dateStr = row.fecha_scraping; // Valor por defecto (si fallara la vigencia)
+        let dateStr = row.fecha_scraping; 
 
-        // Intentamos leer la fecha de vigencia "DD/MM/YYYY"
-        const vigenciaRaw = t?.activa_judicial?.fecha_vigencia; // Ej: "06/02/2026"
+        const vigenciaRaw = t?.activa_judicial?.fecha_vigencia; 
         
         if (vigenciaRaw) {
           try {
-            // Parseamos formato argentino a Objeto Date de JS
             const parsedDate = parse(vigenciaRaw, 'dd/MM/yyyy', new Date());
-            // Lo convertimos a ISO para que el gráfico lo pueda ordenar y filtrar igual que antes
             dateStr = parsedDate.toISOString(); 
           } catch (e) {
             console.error("Error parseando fecha vigencia:", vigenciaRaw);
           }
         }
-        // ----------------------------------
 
         return {
-          date: dateStr, // Ahora usamos la fecha real de validez
-          // Activas (Azules)
+          date: dateStr,
           activa_tna: parsePercent(t?.activa_judicial?.TNA),
           activa_tea: parsePercent(t?.activa_judicial?.TEA),
           activa_tem: parsePercent(t?.activa_judicial?.TEM),
-          // Pasivas (Verdes)
           pasiva_tna: parsePercent(t?.pasiva_judicial?.TNA),
           pasiva_tea: parsePercent(t?.pasiva_judicial?.TEA),
         };
       })
-      // Ordenamos cronológicamente (importante porque ahora las fechas pueden venir desordenadas respecto al ID)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [rawData]);
 
-  // 2. Filtrar datos según el rango seleccionado
+  // 2. Filtrar datos
   const chartData = useMemo(() => {
     const now = new Date();
-    let startDate = new Date(0); // Epoch start (todo)
+    let startDate = new Date(0); 
 
     if (filter === '1W') startDate = subDays(now, 7);
     if (filter === '1M') startDate = subDays(now, 30);
@@ -91,7 +94,6 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
   }, [formattedData, filter, customStart, customEnd]);
 
 
-  // Componentes de UI internos
   const FilterButton = ({ label, value }: { label: string, value: typeof filter }) => (
     <button
       onClick={() => setFilter(value)}
@@ -107,7 +109,6 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
 
   return (
     <div className="space-y-6">
-      {/* Controles de Filtro */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex gap-2 flex-wrap justify-center">
           <FilterButton label="1 Semana" value="1W" />
@@ -135,7 +136,6 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
         )}
       </div>
 
-      {/* Gráfico */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-[500px] w-full relative">
         <h3 className="text-sm font-semibold text-slate-500 mb-6 absolute top-6 left-6 z-10">
           Evolución de Tasas (%)
@@ -162,16 +162,55 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 labelFormatter={(label) => format(parseISO(label), 'dd MMMM yyyy', { locale: es })}
               />
-              <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
               
-              {/* TASAS ACTIVAS (Azules) */}
-              <Line type="monotone" name="Activa TEA" dataKey="activa_tea" stroke="#1e3a8a" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
-              <Line type="monotone" name="Activa TNA" dataKey="activa_tna" stroke="#3b82f6" strokeWidth={3} dot={false} />
-              <Line type="monotone" name="Activa TEM" dataKey="activa_tem" stroke="#93c5fd" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+              {/* LEYENDA INTERACTIVA */}
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px', cursor: 'pointer' }} 
+                iconType="circle"
+                onClick={handleLegendClick} // <--- AQUÍ ESTÁ LA MAGIA
+                formatter={(value, entry: any) => {
+                  const { dataKey } = entry;
+                  const isHidden = hiddenSeries.includes(dataKey);
+                  return (
+                    <span style={{ 
+                      color: isHidden ? '#cbd5e1' : '#334155', // Gris claro si está oculto
+                      textDecoration: isHidden ? 'line-through' : 'none',
+                      fontWeight: 500
+                    }}>
+                      {value}
+                    </span>
+                  );
+                }}
+              />
+              
+              {/* TASAS CON PROPIEDAD HIDE DINÁMICA */}
+              <Line 
+                type="monotone" name="Activa TEA" dataKey="activa_tea" 
+                stroke="#1e3a8a" strokeWidth={3} dot={false} activeDot={{ r: 6 }} 
+                hide={hiddenSeries.includes('activa_tea')} // <--- OCULTAR SI ESTÁ EN LA LISTA
+              />
+              <Line 
+                type="monotone" name="Activa TNA" dataKey="activa_tna" 
+                stroke="#3b82f6" strokeWidth={3} dot={false} 
+                hide={hiddenSeries.includes('activa_tna')} 
+              />
+              <Line 
+                type="monotone" name="Activa TEM" dataKey="activa_tem" 
+                stroke="#93c5fd" strokeWidth={2} strokeDasharray="5 5" dot={false} 
+                hide={hiddenSeries.includes('activa_tem')} 
+              />
 
-              {/* TASAS PASIVAS (Verdes) */}
-              <Line type="monotone" name="Pasiva TEA" dataKey="pasiva_tea" stroke="#14532d" strokeWidth={3} dot={false} />
-              <Line type="monotone" name="Pasiva TNA" dataKey="pasiva_tna" stroke="#22c55e" strokeWidth={3} dot={false} />
+              <Line 
+                type="monotone" name="Pasiva TEA" dataKey="pasiva_tea" 
+                stroke="#14532d" strokeWidth={3} dot={false} 
+                hide={hiddenSeries.includes('pasiva_tea')} 
+              />
+              <Line 
+                type="monotone" name="Pasiva TNA" dataKey="pasiva_tna" 
+                stroke="#22c55e" strokeWidth={3} dot={false} 
+                hide={hiddenSeries.includes('pasiva_tna')} 
+              />
+
             </LineChart>
           </ResponsiveContainer>
         ) : (
@@ -182,7 +221,7 @@ export default function TasasChart({ rawData }: { rawData: RawData[] }) {
       </div>
       
       <p className="text-center text-xs text-slate-400">
-        Haz clic en las leyendas del gráfico para ocultar/mostrar series.
+        Hacé click en las leyendas para ocultar/mostrar series.
       </p>
     </div>
   );
