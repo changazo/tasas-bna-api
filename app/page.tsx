@@ -33,22 +33,31 @@ export default async function Home() {
         
         {/* Header con Navegación */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 pb-6 border-b border-slate-200">
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold tracking-tight text-blue-900">
-              Tasas BNA
-            </h1>
-            <p className="text-slate-500 text-sm">
-              Extracción automática diaria. Último run: {fechaScraping}
-            </p>
-          </div>
-          
-          <Link 
-            href="/historico"
-            className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 hover:text-blue-700 transition flex items-center gap-2"
-          >
-            📅 Ver Historial Completo
-          </Link>
-        </header>
+  <div className="text-center md:text-left">
+    <h1 className="text-3xl font-bold tracking-tight text-blue-900">
+      Tasas BNA
+    </h1>
+    <p className="text-slate-500 text-sm">
+      Extracción automática diaria. Último run: {fechaScraping}
+    </p>
+  </div>
+  
+  <div className="flex gap-3">
+    <Link 
+      href="/graficos"
+      className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition flex items-center gap-2 shadow-sm shadow-blue-200"
+    >
+      📊 Visión interactiva
+    </Link>
+    
+    <Link 
+      href="/historico"
+      className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 hover:text-blue-700 transition flex items-center gap-2"
+    >
+      📅 Tabla simple
+    </Link>
+  </div>
+</header>
 
         {/* Grid de Tarjetas */}
         <div className="grid md:grid-cols-2 gap-6">
