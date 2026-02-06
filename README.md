@@ -1,77 +1,88 @@
 # 🇦🇷 Tasas BNA – API & Dashboard
 
-Este proyecto es una solución **serverless** completa para extraer, almacenar y disponibilizar las tasas financieras del **Banco de la Nación Argentina (BNA)** de forma automatizada y abierta.
+![Vercel](https://therealsujitk-vercel-badge.vercel.app/?app=tasas-bna-api)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.9%2B-yellow)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
 
-Combina un **scraper en Python** automatizado con **GitHub Actions**, una base de datos persistente en **Supabase** y un frontend/API moderno construido con **Next.js** en **Vercel**.
+Este proyecto es una solución **serverless** completa para extraer, almacenar y disponibilizar las tasas financieras activas y pasivas (útiles para casos de uso jurídicos) del **Banco de la Nación Argentina (BNA)** de forma automatizada y abierta.
 
-## 🚀 Demo & API
+Combina un **scraper en Python** automatizado con **GitHub Actions**, una base de datos persistente en **Supabase** y un frontend moderno con gráficos interactivos construido con **Next.js**.
 
-- **Web Dashboard:** `https://tasas-bna-api.vercel.app`
-- **API Endpoint:** `GET /api/tasas/latest`
+## 🚀 Demo & Documentación
+
+- **Dashboard Interactivo:** `https://tasas-bna-api.vercel.app`
+- **Documentación API:** `https://tasas-bna-api.vercel.app/api-docs`
+- **Endpoint Base:** `GET /api/tasas`
+
+## ✨ Características principales
+
+- **Automatización total:** un cron job extrae los datos diariamente sin intervención humana.
+- **API REST flexible:** permite consultar datos históricos, fechas específicas o extraer campos puntuales (TNA, TEA, etc.).
+- **Visualización de datos:** gráficos interactivos con Recharts para analizar la evolución histórica.
+- **Alta performance:** utiliza **Edge Caching** (`s-maxage`) para responder en milisegundos sin saturar la base de datos.
+
+---
 
 ## 🏗 Arquitectura
 
 El sistema funciona de manera autónoma con el siguiente flujo de datos:
 
 1. **Extracción (Daily Cron):** todos los días a las 20:00 (AR), un workflow de **GitHub Actions** ejecuta el script `tasas_bna_light_supabase.py`.
-2. **Persistencia:** el script parsea la web oficial del BNA y guarda el resultado (JSON) en una tabla de **Supabase (PostgreSQL)**.
-3. **Visualización & API:** **Next.js** consulta la base de datos solo cuando es necesario.
-4. **Performance:** la API utiliza **Edge Caching** de Vercel (`s-maxage=43200`) para servir los datos desde caché por 12 horas, minimizando lecturas a la base de datos y garantizando respuestas en milisegundos.
+2. **Persistencia:** el script parsea la web oficial del BNA y guarda el resultado (JSON) en **Supabase (PostgreSQL)**.
+3. **API Layer:** **Next.js** expone los datos, permitiendo filtrado por *query params*.
+4. **Frontend:** interfaz de usuario reactiva con `Tailwind CSS` y `Recharts` para visualización.
+
+---
+
+## 🔌 API Quick Start
+
+La API es pública y tiene **CORS habilitado**. Podés ver la documentación completa en `/api-docs`.
+
+### 1) Últimos datos disponibles
+
+```http
+GET /api/tasas
+```
+
+### 2) Datos históricos (fecha específica)
+
+```http
+GET /api/tasas?date=2024-02-05
+```
+
+### 3) Extraer un dato específico (lightweight)
+
+Ideal para widgets o integraciones simples.
+
+```http
+GET /api/tasas?field=tasas.activa_judicial.TNA
+```
+
+**Respuesta (ejemplo)**
+
+```json
+{
+  "fecha_dato": "2026-02-06",
+  "campo_solicitado": "tasas.activa_judicial.TNA",
+  "valor": "37,42%"
+}
+```
 
 ---
 
 ## 🛠 Tech Stack
 
 - **Backend / Scraping:** Python 3, BeautifulSoup4, supabase-py
-- **Automatización:** GitHub Actions (Cron Job)
-- **Base de Datos:** Supabase (PostgreSQL)
-- **Frontend / API:** Next.js 14+ (App Router), Tailwind CSS
-- **Infraestructura:** Vercel (Serverless Functions & Edge Network)
-
----
-
-## 🔌 API Documentation
-
-Podés consumir los datos libremente en tus aplicaciones. La API tiene **CORS habilitado**.
-
-### Obtener últimas tasas vigentes
-
-**Request**
-
-```http
-GET /api/tasas/latest
-```
-
-**Response (ejemplo)**
-
-```json
-{
-  "fecha_dato": "2026-02-05",
-  "metadata": {
-    "entidad": "Banco de la Nación Argentina",
-    "timestamp": "2026-02-05 04:03:29"
-  },
-  "tasas": {
-    "activa_judicial": {
-      "fecha_vigencia": "05/02/2026",
-      "TEM": "2,977%",
-      "TNA": "36,22%",
-      "TEA": "42,89%"
-    },
-    "pasiva_judicial": {
-      "referencia": "Plazo Fijo 30 días - Canal Electrónico",
-      "TNA": "26,00%",
-      "TEA": "29,34%"
-    }
-  }
-}
-```
+- **Base de Datos:** Supabase (PostgreSQL + JSONB)
+- **Frontend / API:** Next.js 14+ (App Router), TypeScript
+- **Estilos & UI:** Tailwind CSS, Lucide React
+- **Gráficos:** Recharts, date-fns
+- **Infraestructura:** Vercel (deploy) & GitHub Actions (CI/CD)
 
 ---
 
 ## 💻 Desarrollo local
-
-Sigue estos pasos para clonar y ejecutar el proyecto en tu máquina.
 
 ### Prerrequisitos
 
@@ -81,7 +92,7 @@ Sigue estos pasos para clonar y ejecutar el proyecto en tu máquina.
 
 ### 1) Configuración de Base de Datos (Supabase)
 
-Ejecutá el siguiente SQL en el editor de Supabase para crear la tabla:
+Ejecutá el siguiente SQL en el editor de Supabase:
 
 ```sql
 create table historial_tasas (
@@ -91,82 +102,61 @@ create table historial_tasas (
   datos jsonb not null
 );
 
--- Habilitar lectura pública (necesario para la API)
+-- Políticas de seguridad (RLS)
 alter table historial_tasas enable row level security;
 
+-- Lectura pública
 create policy "Lectura pública"
 on historial_tasas
 for select
 using (true);
 
+-- Escritura (solo con Service Role)
 create policy "Insertar backend"
 on historial_tasas
 for insert
 with check (true);
 ```
 
-> Nota: si preferís un modelo más estricto, reemplazá la policy de insert por una policy condicionada a JWT/roles y escribí desde un servicio autenticado. El ejemplo prioriza simplicidad.
-
 ### 2) Variables de entorno
 
-Creá un archivo `.env.local` en la raíz del proyecto:
+Creá un archivo `.env.local`:
 
 ```bash
-# Para el Frontend (Next.js)
 NEXT_PUBLIC_SUPABASE_URL="TU_SUPABASE_PROJECT_URL"
 SUPABASE_SERVICE_ROLE_KEY="TU_SUPABASE_SERVICE_ROLE_KEY"
-
-# Para el Scraper (Python) - también deben ir en GitHub Secrets
 SUPABASE_URL="TU_SUPABASE_PROJECT_URL"
-# Nota: usamos Service Role Key para poder escribir en la DB
 ```
 
-### 3) Ejecutar el scraper (manual)
+> Nota: usá **Service Role Key** para poder escribir en la DB desde el scraper/CI. No la expongas en el cliente.
+
+### 3) Ejecutar el proyecto
+
+#### Scraper (Python)
 
 ```bash
 pip install -r requirements.txt
 python tasas_bna_light_supabase.py
 ```
 
-### 4) Ejecutar el frontend
+#### Frontend (Next.js)
 
 ```bash
 npm install
 npm run dev
 ```
 
-Visitá `http://localhost:3000`.
-
----
-
-## ⚙️ Despliegue
-
-### 1) GitHub Actions (automático)
-
-El archivo `.github/workflows/daily_scrape.yml` ya está configurado. Solamente asegurate de agregar estas **Secrets** en tu repositorio de GitHub:
-
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-### 2) Vercel
-
-1. Importá el repositorio en Vercel.
-2. Agregá las Environment Variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-3. Deploy.
-
 ---
 
 ## ⚠️ Disclaimer
 
-Este proyecto no tiene afiliación con el Banco de la Nación Argentina. Los datos se obtienen mediante técnicas de web scraping y pueden contener errores o quedar desactualizados si cambia la estructura de la web oficial. Usalo bajo tu propia responsabilidad.
+Este proyecto no tiene afiliación oficial con el Banco de la Nación Argentina. Los datos se obtienen mediante técnicas de web scraping de fuentes públicas y pueden contener errores o quedar desactualizados si cambia la estructura de la web oficial. Usalo bajo tu propia responsabilidad.
 
 ---
 
 ## Créditos
 
-Si te sirvió, una referencia o mención en tu proyecto no viene mal.
+Si te sirvió este proyecto, considerá darle una estrella en GitHub ⭐
 
-Buena vida,
+Buena vida,  
 Juan Cruz
