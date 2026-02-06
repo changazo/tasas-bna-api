@@ -160,3 +160,5 @@ Si te sirvió este proyecto, considerá darle una estrella en GitHub ⭐
 
 Buena vida,  
 Juan Cruz
+
+![Dashboard Screenshot](./public/screenshot.png)
