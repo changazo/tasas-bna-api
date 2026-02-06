@@ -162,3 +162,5 @@ Buena vida,
 Juan Cruz
 
 ![Dashboard Screenshot](./public/screenshot.png)
+![Dashboard Screenshot](./public/screenshot2.png)
+![Dashboard Screenshot](./public/screenshot3.png)
