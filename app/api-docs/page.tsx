@@ -28,7 +28,7 @@ export default function ApiDocs() {
           </div>
           
           <div className="bg-slate-900 text-slate-50 p-4 rounded-xl font-mono text-sm overflow-x-auto">
-            GET https://tudominio.vercel.app/api/tasas
+            GET https://tasas-bna-api.vercel.app/api/tasas
           </div>
         </section>
 
