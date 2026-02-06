@@ -119,7 +119,7 @@ export default async function Home() {
   <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
     <div className="max-w-xl">
       <h2 className="text-2xl font-bold flex items-center gap-2">
-        <code className="text-blue-400">&lt;API /&gt;</code> Gratis para desarrolladores
+        <code className="text-blue-400">&lt;API /&gt;</code> gratis para desarrolladores
       </h2>
 
       <div className="mt-4 inline-flex items-center bg-black/30 rounded-lg px-4 py-2 font-mono text-sm text-blue-200 border border-white/10">
