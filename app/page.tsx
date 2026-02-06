@@ -88,7 +88,7 @@ export default async function Home() {
               ACTIVA
             </div>
             <h2 className="text-lg font-semibold text-blue-700 mb-2 flex items-center">
-              <span>⚖️</span> <span className="ml-2">Tasa Activa Judicial</span>
+              <span>⚖️</span> <span className="ml-2">Tasa Activa (uso jurídico)</span>
             </h2>
             
             {/* NUEVO: Fecha de Vigencia */}
@@ -113,10 +113,40 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Sección API (sin cambios, solo visual) */}
-        <section className="bg-slate-900 text-slate-300 rounded-xl p-6 text-sm">
-           <p>Para desarrolladores: <code className="text-green-400 bg-black/30 px-2 py-1 rounded">/api/tasas/latest</code></p>
-        </section>
+        {/* ... resto de tu código ... */}
+
+<section className="mt-16 bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+  {/* Un pequeño efecto de fondo decorativo */}
+  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+  
+  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    <div className="space-y-4 max-w-xl">
+      <h2 className="text-2xl font-bold flex items-center gap-2">
+        <code className="text-blue-400">&lt;API /&gt;</code> para Desarrolladores
+      </h2>
+      <p className="text-slate-300 leading-relaxed">
+        ¿Necesitas estos datos en tu propio sistema? Disponemos de una API REST gratuita,
+        documentada y fácil de integrar para obtener las tasas históricas y actuales.
+      </p>
+      
+      {/* Muestra rápida del endpoint */}
+      <div className="inline-block bg-black/30 rounded-lg px-4 py-2 font-mono text-sm text-blue-200 border border-white/10">
+        GET /api/tasas
+      </div>
+    </div>
+
+    {/* BOTÓN A DOCUMENTACIÓN */}
+    <Link 
+      href="/api-docs" 
+      className="group flex items-center gap-2 bg-white text-slate-900 px-6 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-all shadow-lg hover:shadow-blue-500/20"
+    >
+      Ver Documentación
+      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      </svg>
+    </Link>
+  </div>
+</section>
 
       </div>
     </main>
